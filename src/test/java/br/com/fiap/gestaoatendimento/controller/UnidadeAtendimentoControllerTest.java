@@ -25,161 +25,146 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.fiap.gestaoatendimento.model.UnidadeAtendimentoModel;
+import br.com.fiap.gestaoatendimento.service.UnidadeAtendimentoService;
+
 class UnidadeAtendimentoControllerTest {
 
-	// private MockMvc mockMvc;
+	private MockMvc mockMvc;
 
-	// private AutoCloseable openMocks;
+	private AutoCloseable openMocks;
 
-	// @Mock
-	// private ClienteService clienteService;
-	
+	@Mock
+	private UnidadeAtendimentoService service;
 
-	// private ClienteController clienteController;
+	private UnidadeAtendimentoController controller;
 
-	// @BeforeEach
-	// void setup() {
-	// 	openMocks = MockitoAnnotations.openMocks(this);
-		
-	// 	ClienteMapper clienteMapper = new ClienteMapper();
-	// 	clienteController = new ClienteController(clienteService, clienteMapper);
+	@BeforeEach
+	void setup() {
+		openMocks = MockitoAnnotations.openMocks(this);
 
-	// 	mockMvc = MockMvcBuilders.standaloneSetup(clienteController).build();
-	// }
+		controller = new UnidadeAtendimentoController(service);
 
-	// @AfterEach
-	// void teardown() throws Exception {
-	// 	openMocks.close();
-	// }
+		mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+	}
 
-	// @Test
-	// void devePermitirListarClientes() throws Exception {
-	// 	Arrange
-	// 	List<Cliente> clientes = Arrays.asList(
-	// 			new Cliente(1L, "João", "12345678901", "joao@email.com", "123456789", "Rua A, 123", "49045-190",
-	// 					StatusCliente.ATIVO),
-	// 			new Cliente(2L, "Maria", "98765432100", "maria@email.com", "987654321", "Rua B, 456", "49045-190",
-	// 					StatusCliente.ATIVO));
-	// 	when(clienteService.listarClientes()).thenReturn(clientes);
+	@AfterEach
+	void teardown() throws Exception {
+		openMocks.close();
+	}
 
-	// 	Act & Assert
-	// 	mockMvc.perform(get("/api/clientes"))
-	// 		.andExpect(status().isOk())
-	// 		.andExpect(jsonPath("$.length()").value(2))
-	// 		.andExpect(jsonPath("$[0].nome").value("João"))
-	// 		.andExpect(jsonPath("$[1].nome").value("Maria"));
-	// }
+	@Test
+	void devePermitirSalvarUmaUnidadeDeAtendimento() throws Exception {
+		// Arrange
+		UnidadeAtendimentoModel unidadeAtendimento = gerarUmaUnidadeAtendimento();
 
-	// @Test
-	// void devePermitirRegistrarUmCliente() throws Exception {
-	// 	Arrange
-	// 	ClienteRequestDTO request = gerarUmClienteRequestDTO();
-	// 	Cliente response = gerarUmCliente();
+		when(service.salvar(any(UnidadeAtendimentoModel.class))).thenReturn(unidadeAtendimento);
 
-	// 	when(clienteService.criarCliente(any(Cliente.class))).thenReturn(response);
+		// Act & Assert
+		mockMvc.perform(
+				post("/unidades").contentType(MediaType.APPLICATION_JSON).content(asJsonString(unidadeAtendimento)))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.nome").value("UBS teste"))
+				.andExpect(jsonPath("$.endereco").value("Rua XPTO, 220"))
+				.andExpect(jsonPath("$.cidade").value("Barueri"))
+				.andExpect(jsonPath("$.estado").value("São Paulo"));
+	}
 
-	// 	Act & Assert
-	// 	mockMvc.perform(post("/api/clientes").contentType(MediaType.APPLICATION_JSON).content(asJsonString(request)))
-	// 			.andExpect(status().isCreated()).andExpect(jsonPath("$.idCliente").value(1L))
-	// 			.andExpect(jsonPath("$.nome").value("João Silva"))
-	// 			.andExpect(jsonPath("$.documento").value("123.456.789-01"))
-	// 			.andExpect(jsonPath("$.email").value("joao.silva@email.com"))
-	// 			.andExpect(jsonPath("$.telefone").value("98765-4321"))
-	// 			.andExpect(jsonPath("$.endereco").value("Rua das Flores, 101"))
-	// 			.andExpect(jsonPath("$.cep").value("49045-190"))
-	// 			.andExpect(jsonPath("$.status").value(StatusCliente.ATIVO.getDescricao()));
-	// }
+	@Test
+	void devePermitirListarUnidadesDeAtendimento() throws Exception {
+		// Arrange
+		List<UnidadeAtendimentoModel> unidades = Arrays.asList(
+				new UnidadeAtendimentoModel(
+						"UBS teste",
+						"Rua XPTO, 220",
+						"Barueri",
+						"São Paulo"),
+				new UnidadeAtendimentoModel(
+						"UBS teste 2",
+						"Rua ABC, 220",
+						"Cotia",
+						"São Paulo"));
 
-	// @Test
-	// void devePermitirListarUmClientePorId() throws Exception {
-	// 	Arrange
-	// 	Long id = 1L;
-	// 	Cliente response = gerarUmCliente();
-	// 	when(clienteService.obterPorId(anyLong())).thenReturn(response);
+		when(service.listarTodas()).thenReturn(unidades);
 
-	// 	Act & Assert
-	// 	mockMvc.perform(
-	// 			get("/api/clientes/{id}", id).contentType(MediaType.APPLICATION_JSON).content(asJsonString(response)))
-	// 			.andExpect(status().isOk()).andExpect(jsonPath("$.idCliente").value(1L))
-	// 			.andExpect(jsonPath("$.nome").value("João Silva"))
-	// 			.andExpect(jsonPath("$.documento").value("123.456.789-01"))
-	// 			.andExpect(jsonPath("$.email").value("joao.silva@email.com"))
-	// 			.andExpect(jsonPath("$.telefone").value("98765-4321"))
-	// 			.andExpect(jsonPath("$.endereco").value("Rua das Flores, 101"))
-	// 			.andExpect(jsonPath("$.cep").value("49045-190"))
-	// 			.andExpect(jsonPath("$.status").value(StatusCliente.ATIVO.getDescricao()));
-	// }
+		// Act & Assert
+		mockMvc.perform(get("/unidades"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].nome").value("UBS teste"))
+				.andExpect(jsonPath("$[1].nome").value("UBS teste 2"))
+				.andExpect(jsonPath("$[0].endereco").value("Rua XPTO, 220"))
+				.andExpect(jsonPath("$[1].endereco").value("Rua ABC, 220"))
+				.andExpect(jsonPath("$[0].cidade").value("Barueri"))
+				.andExpect(jsonPath("$[1].cidade").value("Cotia"))
+				.andExpect(jsonPath("$[0].estado").value("São Paulo"))
+				.andExpect(jsonPath("$[1].estado").value("São Paulo"));
+	}
 
-	// @Test
-	// void devePermitirAtualizarUmCliente() throws Exception {
-	// 	Arrange
-	// 	Long id = 1L;
-	// 	ClienteRequestDTO requestModificado = gerarUmClienteRequestDTOModificado();
-	// 	Cliente responseAtualizado = gerarUmClienteAtualizado();
-	// 	when(clienteService.atualizarCliente(anyLong(), any(Cliente.class))).thenReturn(responseAtualizado);
+	@Test
+	void devePermitirBuscarUnidadeDeAtendimentoPorId() throws Exception {
+		// Arrange
+		Long id = 1L;
+		UnidadeAtendimentoModel response = gerarUmaUnidadeAtendimento();
+		when(service.buscarPorId(anyLong())).thenReturn(response);
 
-	// 	Act & Assert
-    //     mockMvc.perform(put("/api/clientes/{id}", id)
-    //             .contentType(MediaType.APPLICATION_JSON)
-    //             .content(asJsonString(requestModificado)))
-    //             .andExpect(status().isOk())
-    //             .andExpect(jsonPath("$.idCliente").value(1L))
-	// 			.andExpect(jsonPath("$.nome").value("João Pereira Silva"))
-	// 			.andExpect(jsonPath("$.documento").value("123.456.789-01"))
-	// 			.andExpect(jsonPath("$.email").value("joao.silva123@email.com"))
-	// 			.andExpect(jsonPath("$.telefone").value("11 98765-4321"))
-	// 			.andExpect(jsonPath("$.endereco").value("Rua das Flores, 103"))
-	// 			.andExpect(jsonPath("$.status").value(StatusCliente.ATIVO.getDescricao()));
-	// }
-	
-	// @Test
-	// void devePermitirDesativarUmCliente() throws Exception {
-	// 	Arrange
-	// 	Long id = 1L;
-    //     doNothing().when(clienteService).desativarCliente(id);
+		// Act & Assert
+		mockMvc.perform(
+				get("/unidades/{id}", id).contentType(MediaType.APPLICATION_JSON).content(asJsonString(response)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.nome").value("UBS teste"))
+				.andExpect(jsonPath("$.endereco").value("Rua XPTO, 220"))
+				.andExpect(jsonPath("$.cidade").value("Barueri"))
+				.andExpect(jsonPath("$.estado").value("São Paulo"));
 
-	// 	Act & Assert
-    //     mockMvc.perform(patch("/api/clientes/desativar/{id}", id))
-    //             .andExpect(status().isOk());
-	// }
-	
-	// @Test
-	// void devePermitirAtivarUmCliente() throws Exception {
-	// 	Arrange
-	// 	Long id = 1L;
-    //     doNothing().when(clienteService).ativarCliente(id);
+	}
 
-	// 	Act & Assert
-    //     mockMvc.perform(patch("/api/clientes/ativar/{id}", id))
-    //             .andExpect(status().isOk());
-	// }
+	@Test
+	void devePermitirAtualizarUmaUnidadeDeAtendimento() throws Exception {
+		// Arrange
+		Long id = 1L;
+		UnidadeAtendimentoModel unidadeAtendimento = gerarUmaUnidadeAtendimento();
+		unidadeAtendimento.setCidade("Osasco");
 
-	// public static String asJsonString(final Object object) {
-	// 	try {
-	// 		return new ObjectMapper().writeValueAsString(object);
-	// 	} catch (Exception e) {
-	// 		throw new RuntimeException();
-	// 	}
-	// }
+		when(service.atualizar(anyLong(), any(UnidadeAtendimentoModel.class))).thenReturn(unidadeAtendimento);
 
-	// private ClienteRequestDTO gerarUmClienteRequestDTO() {
-	// 	return new ClienteRequestDTO("João Silva", "123.456.789-01", "joao.silva@email.com", "98765-4321",
-	// 			"Rua das Flores, 101", "49045-190");
-	// }
-	
-	// private Cliente gerarUmCliente() {
-	// 	return new Cliente(1L, "João Silva", "123.456.789-01", "joao.silva@email.com", "98765-4321",
-	// 			"Rua das Flores, 101", "49045-190", StatusCliente.ATIVO);
-	// }
-	
-	// private ClienteRequestDTO gerarUmClienteRequestDTOModificado() {
-	// 	return new ClienteRequestDTO("João Pereira Silva", "123.456.789-01", "joao.silva123@email.com", "11 98765-4321",
-	// 			"Rua das Flores, 103", "49045-190");
-	// }
-	
-	// private Cliente gerarUmClienteAtualizado() {
-	// 	return new Cliente(1L, "João Pereira Silva", "123.456.789-01", "joao.silva123@email.com", "11 98765-4321",
-	// 			"Rua das Flores, 103", "49045-190", StatusCliente.ATIVO);
-	// }
+		// Act & Assert
+		mockMvc.perform(put("/unidades/{id}", id)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(unidadeAtendimento)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.nome").value("UBS teste"))
+				.andExpect(jsonPath("$.endereco").value("Rua XPTO, 220"))
+				.andExpect(jsonPath("$.cidade").value("Osasco"))
+				.andExpect(jsonPath("$.estado").value("São Paulo"));
+		;
+	}
+
+	@Test
+	void devePermitirExcluirUmaUnidadeDeAtendimento() throws Exception {
+		// Arrange
+		Long id = 1L;
+		doNothing().when(service).excluir(id);
+
+		// Act & Assert
+		mockMvc.perform(patch("/unidades/{id}", id))
+				.andExpect(status().is(405));
+	}
+
+	public static String asJsonString(final Object object) {
+		try {
+			return new ObjectMapper().writeValueAsString(object);
+		} catch (Exception e) {
+			throw new RuntimeException();
+		}
+	}
+
+	private UnidadeAtendimentoModel gerarUmaUnidadeAtendimento() {
+		return new UnidadeAtendimentoModel(
+				"UBS teste",
+				"Rua XPTO, 220",
+				"Barueri",
+				"São Paulo");
+	}
 
 }

@@ -57,6 +57,43 @@ class UnidadeAtendimentoControllerIT {
 	}
 
 	@Test
+	void devePermitirAtualizarUmaUnidadeDeAtendimento() {
+
+		// Arrange
+		UnidadeAtendimentoModel unidadeAtendimento = repository.save(new UnidadeAtendimentoModel("UBS teste",
+							"Rua XPTO, 220",
+							"Barueri",
+							"São Paulo"));
+		unidadeAtendimento.setCidade("Cotia");
+
+		// Arrange
+		UnidadeAtendimentoRequestDTO request = gerarUmaUnidadeAtendimentoRequestDTO();
+		
+	 	// Act & Assert
+	 	given().filter(new AllureRestAssured())
+	 		.contentType(MediaType.APPLICATION_JSON_VALUE).body(request)
+	 		.when().put("/unidades/{id}", unidadeAtendimento.getId())
+	 		.then().statusCode(HttpStatus.OK.value())
+	 		.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
+	}
+
+	@Test
+	void devePermitirExcluirUmaUnidadeDeAtendimento() {
+
+		// Arrange
+		UnidadeAtendimentoModel unidadeAtendimento = repository.save(new UnidadeAtendimentoModel("UBS teste",
+							"Rua XPTO, 220",
+							"Barueri",
+							"São Paulo"));
+		
+	 	// Act & Assert
+	 	given().filter(new AllureRestAssured())
+	 		.contentType(MediaType.APPLICATION_JSON_VALUE)
+	 		.when().delete("/unidades/{id}", unidadeAtendimento.getId())
+	 		.then().statusCode(HttpStatus.NO_CONTENT.value());
+	}
+
+	@Test
 	void devePermitirListarUnidadesDeAtendimento() {
 		// Arrange
 		repository.save(new UnidadeAtendimentoModel("UBS teste",
@@ -76,80 +113,22 @@ class UnidadeAtendimentoControllerIT {
 			.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
 	}
 	
-	// @Test
-	// void devePermitirListarUmClientePorId() {
-	// 	// Arrange
-	// 	ClienteEntity clienteEntity =  clienteRepository.save(new ClienteEntity(1L, "João Silva", "355.347.740-70", "joao.silva@email.com",
-	// 			"98765-4321", "Rua das Flores, 101", "04814-045", StatusCliente.ATIVO));
+	@Test
+	void devePermitirBuscarUnidadeDeAtendimentoPorId() {
+		// Arrange
+		UnidadeAtendimentoModel unidadeAtendimento = repository.save(new UnidadeAtendimentoModel("UBS teste",
+							"Rua XPTO, 220",
+							"Barueri",
+							"São Paulo"));
 
-	// 	// Act & Assert
-	// 	given().filter(new AllureRestAssured())
-	//           .contentType(MediaType.APPLICATION_JSON_VALUE)
-	//           .when().get("/api/clientes/{id}", clienteEntity.getId())
-	//           .then().statusCode(HttpStatus.OK.value())
-	//           .body(matchesJsonSchemaInClasspath("./schemas/ClienteSchema.json"));
-	// }
+		// Act & Assert
+		given().filter(new AllureRestAssured())
+	          .contentType(MediaType.APPLICATION_JSON_VALUE)
+	          .when().get("/unidades/{id}", unidadeAtendimento.getId())
+	          .then().statusCode(HttpStatus.OK.value())
+	          .body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
+	}
 	
-	// @Test
-	// void devePermitirListarClientes() {
-	// 	// Arrange
-	// 	clienteRepository.save(new ClienteEntity(1L, "João Silva", "355.347.740-70", "joao.silva@email.com", "98765-4321",
-	// 			"Rua das Flores, 101", "03070-900", StatusCliente.ATIVO));
-	// 	clienteRepository.save(new ClienteEntity(2L, "Maisa Santos", "935.782.990-30", "maria.santos@email.com", "92365-4521",
-	// 			"Rua dos Ventos, 23", "08382-135", StatusCliente.ATIVO));
-
-	// 	// Act & Assert
-	// 	given().filter(new AllureRestAssured())
-	// 		.contentType(MediaType.APPLICATION_JSON_VALUE)
-	// 		.when().get("/api/clientes")
-	// 		.then().statusCode(HttpStatus.OK.value())
-	// 		.body(matchesJsonSchemaInClasspath("./schemas/ClienteSchema.json"));
-	// }
-	
-	// @Test
-	// void devePermitirAtualizarUmCliente() {
-	// 	// Arrange
-	// 	ClienteEntity clienteEntity =  clienteRepository.save(new ClienteEntity(null, "João Silva", "355.347.740-70", "joao.silva@email.com",
-	// 			"98765-4321", "Rua das Flores, 101", "04326-000", StatusCliente.ATIVO));
-	// 	clienteEntity.setEndereco("Rua do Teste, 123");
-	// 	clienteEntity.setEmail("email@teste.com.br");
-		
-	// 	ClienteRequestDTO clienteAtualizadoRequest = new ClienteRequestDTO(clienteEntity.getNome(), clienteEntity.getDocumento(),
-	// 			clienteEntity.getEmail(), clienteEntity.getTelefone(), clienteEntity.getEndereco(), clienteEntity.getCep());
-
-	// 	// Act & Assert
-	// 	given().filter(new AllureRestAssured())
-	// 		.contentType(MediaType.APPLICATION_JSON_VALUE).body(clienteAtualizadoRequest)
-	// 		.when().put("/api/clientes/{id}", clienteEntity.getId())
-	// 		.then().statusCode(HttpStatus.OK.value())
-	// 		.body(matchesJsonSchemaInClasspath("./schemas/ClienteSchema.json"));
-	// }
-	
-	// @Test
-	// void devePermitirDesativarUmCliente() {
-	// 	// Arrange
-	// 	ClienteEntity clienteEntity =  clienteRepository.save(new ClienteEntity(null, "João Silva", "355.347.740-70", "joao.silva@email.com",
-	// 			"98765-4321", "Rua das Flores, 101", "08031-086", StatusCliente.ATIVO));
-
-	// 	// Act & Assert
-	// 	given().filter(new AllureRestAssured())
-    //     .contentType(MediaType.APPLICATION_JSON_VALUE)
-    //     .when().patch("/api/clientes/desativar/{id}", clienteEntity.getId())
-    //     .then().statusCode(HttpStatus.OK.value());
-	// }
-	
-	// @Test
-	// void devePermitirAtivarUmCliente() {
-	// 	// Arrange
-	// 	ClienteEntity clienteEntity =  clienteRepository.save(new ClienteEntity(null, "João Silva", "355.347.740-70", "joao.silva@email.com",
-	// 			"98765-4321", "Rua das Flores, 101", "03389-060", StatusCliente.DESATIVADO));
-
-	// 	// Act & Assert
-	// 	given().filter(new AllureRestAssured())
-    //     .contentType(MediaType.APPLICATION_JSON_VALUE)
-    //     .when().patch("/api/clientes/ativar/{id}", clienteEntity.getId())
-    //     .then().statusCode(HttpStatus.OK.value());
-	// }
 
 	private UnidadeAtendimentoRequestDTO gerarUmaUnidadeAtendimentoRequestDTO() {
 		return new UnidadeAtendimentoRequestDTO(
