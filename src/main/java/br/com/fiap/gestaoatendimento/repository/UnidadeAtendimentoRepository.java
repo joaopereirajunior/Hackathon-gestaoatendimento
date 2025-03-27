@@ -1,10 +1,11 @@
 package br.com.fiap.gestaoatendimento.repository;
 
-import br.com.fiap.gestaoatendimento.domain.UnidadeAtendimento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import br.com.fiap.gestaoatendimento.model.UnidadeAtendimentoModel;
+
 @Repository
-public interface UnidadeAtdimentoRepository extends JpaRepository<UnidadeAtendimento, Long> {
+public interface UnidadeAtendimentoRepository extends JpaRepository<UnidadeAtendimentoModel, Long> {
 
 }

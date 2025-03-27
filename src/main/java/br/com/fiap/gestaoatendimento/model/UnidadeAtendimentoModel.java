@@ -1,7 +1,6 @@
-package br.com.fiap.gestaoatendimento.domain;
+package br.com.fiap.gestaoatendimento.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,16 +8,23 @@ import lombok.NoArgsConstructor;
 @Table(name = "unidades_atendimento")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class UnidadeAtendimento {
+public class UnidadeAtendimentoModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nome;
     private String endereco;
     private String cidade;
+    private String estado;
+
+    public UnidadeAtendimentoModel(String nome, String endereco, String cidade, String estado)
+    {
+        this.nome = nome;
+        this.endereco = endereco;
+        this.cidade = cidade;
+        this.estado = estado;
+    }
 
     public Long getId()
     {
@@ -70,7 +76,7 @@ public class UnidadeAtendimento {
         this.estado = estado;
     }
 
-    private String estado;
+    
 
 
 
