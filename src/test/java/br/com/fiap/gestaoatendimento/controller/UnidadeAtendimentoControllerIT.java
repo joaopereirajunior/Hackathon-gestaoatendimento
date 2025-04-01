@@ -16,8 +16,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import br.com.fiap.gestaoatendimento.model.UnidadeAtendimentoModel;
+import br.com.fiap.gestaoatendimento.model.UsuarioModel;
 import br.com.fiap.gestaoatendimento.model.dto.UnidadeAtendimentoRequestDTO;
 import br.com.fiap.gestaoatendimento.repository.UnidadeAtendimentoRepository;
+import br.com.fiap.gestaoatendimento.utils.JwtUtil;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 
@@ -28,14 +30,19 @@ class UnidadeAtendimentoControllerIT {
 
 	@LocalServerPort
 	private int port;
-    
-    @Autowired
-    private UnidadeAtendimentoRepository repository;
+
+	@Autowired
+	private UnidadeAtendimentoRepository repository;
+
+	private final JwtUtil jwtUtil = new JwtUtil();
+
+	private String tokenTest;
 
 	@BeforeEach
 	public void setup() {
-	     RestAssured.port = port;
-	     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+		RestAssured.port = port;
+		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+		tokenTest = jwtUtil.login(new UsuarioModel("usuario", "senha"));
 	}
 
 	@Test
@@ -45,15 +52,16 @@ class UnidadeAtendimentoControllerIT {
 
 		// Act & Assert
 		given().filter(new AllureRestAssured()).contentType(MediaType.APPLICATION_JSON_VALUE)
-			.body(request)
-			.when().post("/unidades")
-			.then().statusCode(HttpStatus.CREATED.value())
-			.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"))
-			.body("$", hasKey("nome"))
-			.body("$", hasKey("endereco"))
-			.body("$", hasKey("cidade"))
-			.body("$", hasKey("estado"))
-			.body("id", greaterThan(0));
+				.header("Authorization", "Bearer " + tokenTest)
+				.body(request)
+				.when().post("/unidades")
+				.then().statusCode(HttpStatus.CREATED.value())
+				.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"))
+				.body("$", hasKey("nome"))
+				.body("$", hasKey("endereco"))
+				.body("$", hasKey("cidade"))
+				.body("$", hasKey("estado"))
+				.body("id", greaterThan(0));
 	}
 
 	@Test
@@ -61,20 +69,21 @@ class UnidadeAtendimentoControllerIT {
 
 		// Arrange
 		UnidadeAtendimentoModel unidadeAtendimento = repository.save(new UnidadeAtendimentoModel("UBS teste",
-							"Rua XPTO, 220",
-							"Barueri",
-							"São Paulo"));
+				"Rua XPTO, 220",
+				"Barueri",
+				"São Paulo"));
 		unidadeAtendimento.setCidade("Cotia");
 
 		// Arrange
 		UnidadeAtendimentoRequestDTO request = gerarUmaUnidadeAtendimentoRequestDTO();
-		
-	 	// Act & Assert
-	 	given().filter(new AllureRestAssured())
-	 		.contentType(MediaType.APPLICATION_JSON_VALUE).body(request)
-	 		.when().put("/unidades/{id}", unidadeAtendimento.getId())
-	 		.then().statusCode(HttpStatus.OK.value())
-	 		.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
+
+		// Act & Assert
+		given().filter(new AllureRestAssured())
+				.header("Authorization", "Bearer " + tokenTest)
+				.contentType(MediaType.APPLICATION_JSON_VALUE).body(request)
+				.when().put("/unidades/{id}", unidadeAtendimento.getId())
+				.then().statusCode(HttpStatus.OK.value())
+				.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
 	}
 
 	@Test
@@ -82,15 +91,16 @@ class UnidadeAtendimentoControllerIT {
 
 		// Arrange
 		UnidadeAtendimentoModel unidadeAtendimento = repository.save(new UnidadeAtendimentoModel("UBS teste",
-							"Rua XPTO, 220",
-							"Barueri",
-							"São Paulo"));
-		
-	 	// Act & Assert
-	 	given().filter(new AllureRestAssured())
-	 		.contentType(MediaType.APPLICATION_JSON_VALUE)
-	 		.when().delete("/unidades/{id}", unidadeAtendimento.getId())
-	 		.then().statusCode(HttpStatus.NO_CONTENT.value());
+				"Rua XPTO, 220",
+				"Barueri",
+				"São Paulo"));
+
+		// Act & Assert
+		given().filter(new AllureRestAssured())
+				.header("Authorization", "Bearer " + tokenTest)
+				.contentType(MediaType.APPLICATION_JSON_VALUE)
+				.when().delete("/unidades/{id}", unidadeAtendimento.getId())
+				.then().statusCode(HttpStatus.NO_CONTENT.value());
 	}
 
 	@Test
@@ -107,28 +117,29 @@ class UnidadeAtendimentoControllerIT {
 
 		// Act & Assert
 		given().filter(new AllureRestAssured())
-			.contentType(MediaType.APPLICATION_JSON_VALUE)
-			.when().get("/unidades")
-			.then().statusCode(HttpStatus.OK.value())
-			.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
+				.header("Authorization", "Bearer " + tokenTest)
+				.contentType(MediaType.APPLICATION_JSON_VALUE)
+				.when().get("/unidades")
+				.then().statusCode(HttpStatus.OK.value())
+				.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
 	}
-	
+
 	@Test
 	void devePermitirBuscarUnidadeDeAtendimentoPorId() {
 		// Arrange
 		UnidadeAtendimentoModel unidadeAtendimento = repository.save(new UnidadeAtendimentoModel("UBS teste",
-							"Rua XPTO, 220",
-							"Barueri",
-							"São Paulo"));
+				"Rua XPTO, 220",
+				"Barueri",
+				"São Paulo"));
 
 		// Act & Assert
 		given().filter(new AllureRestAssured())
-	          .contentType(MediaType.APPLICATION_JSON_VALUE)
-	          .when().get("/unidades/{id}", unidadeAtendimento.getId())
-	          .then().statusCode(HttpStatus.OK.value())
-	          .body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
+				.header("Authorization", "Bearer " + tokenTest)
+				.contentType(MediaType.APPLICATION_JSON_VALUE)
+				.when().get("/unidades/{id}", unidadeAtendimento.getId())
+				.then().statusCode(HttpStatus.OK.value())
+				.body(matchesJsonSchemaInClasspath("./schemas/UnidadeAtendimentoSchema.json"));
 	}
-	
 
 	private UnidadeAtendimentoRequestDTO gerarUmaUnidadeAtendimentoRequestDTO() {
 		return new UnidadeAtendimentoRequestDTO(

@@ -1,12 +1,15 @@
 package br.com.fiap.gestaoatendimento.controller;
 
 import br.com.fiap.gestaoatendimento.model.UnidadeAtendimentoModel;
+import br.com.fiap.gestaoatendimento.model.UsuarioModel;
 import br.com.fiap.gestaoatendimento.model.dto.UnidadeAtendimentoRequestDTO;
 import br.com.fiap.gestaoatendimento.model.dto.UnidadeAtendimentoResponseDTO;
 import br.com.fiap.gestaoatendimento.service.UnidadeAtendimentoService;
+import br.com.fiap.gestaoatendimento.utils.JwtUtil;
 import br.com.fiap.gestaoatendimento.utils.Mapper;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,9 +18,26 @@ import java.util.List;
 @RequestMapping("/unidades")
 public class UnidadeAtendimentoController {
     private final UnidadeAtendimentoService service;
+    private final JwtUtil jwtUtil = new JwtUtil();
+
 
     public UnidadeAtendimentoController(UnidadeAtendimentoService service) {
         this.service = service;
+    }
+
+    // Endpoint para autenticar e gerar token
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody UsuarioModel user) {
+        
+        String token = jwtUtil.login(user);
+        if(token != null && !token.isEmpty())
+        {
+            return ResponseEntity.ok(token);
+        }
+        else
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário ou senha inválidos.");
+        }
     }
 
     @PostMapping
