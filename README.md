@@ -4,6 +4,7 @@ Este projeto faz parte do *Tech Challenge - Hackaton Fase 5*, nele foi construid
 
 ## Tecnologias Utilizadas
 
+
 - **Java 17**: Versão de linguagem utilizada.
 - **Spring Boot**: Framework para desenvolvimento de aplicações Java.
 - **Spring Security**: Fornece autenticação, autorização e outros recursos de segurança.
