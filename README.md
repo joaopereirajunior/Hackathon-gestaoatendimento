@@ -21,6 +21,7 @@ URL LOCAL: [[http://localhost:9090/swagger-ui.html](http://localhost:9090/swagge
 
 ## Para executar a aplicação via Docker, siga os comandos abaixo:
 
+
 1. **Faça login no Docker:**
    ```bash
    docker login
